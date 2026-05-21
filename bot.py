@@ -8,9 +8,9 @@ from telegram.ext import (
 )
 
 load_dotenv()
-TOKEN = os.getenv("8965406245:AAGhx10fSoaHa3f8d_gs7n5DbHkZliZmnaE")
-GROUP_ID = int(os.getenv("-5188453086"))
-ADMIN_ID = int(os.getenv("8637719248"))
+TOKEN = os.getenv("BOT_TOKEN")
+GROUP_ID = int(os.getenv("GROUP_CHAT_ID"))
+ADMIN_ID = int(os.getenv("ADMIN_ID"))
 
 # ─── Quản lý khách hàng ───────────────────────────────────────
 def load_customers():
