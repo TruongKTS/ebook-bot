@@ -12,6 +12,33 @@ TOKEN = os.getenv("BOT_TOKEN")
 GROUP_ID = int(os.getenv("GROUP_CHAT_ID"))
 ADMIN_ID = int(os.getenv("ADMIN_ID"))
 
+# ─── FAQ tự động trong group ──────────────────────────────────
+FAQ = {
+    # Ebook
+    "tải ebook": "📥 Bạn vui lòng nhắn tin trực tiếp với bot @MarketingBDS_bot và gõ /start để nhận ebook!",
+    "nhận ebook": "📥 Bạn vui lòng nhắn tin trực tiếp với bot @MarketingBDS_bot và gõ /start để nhận ebook!",
+    "download": "📥 Bạn vui lòng nhắn tin trực tiếp với bot @MarketingBDS_bot và gõ /start để nhận ebook!",
+    
+    # Giá cả
+    "giá bao nhiêu": "💰 Vui lòng liên hệ admin @TruongKTS để được tư vấn giá chi tiết!",
+    "bao nhiêu tiền": "💰 Vui lòng liên hệ admin @TruongKTS để được tư vấn giá chi tiết!",
+    "chi phí": "💰 Vui lòng liên hệ admin @TruongKTS để được tư vấn giá chi tiết!",
+    
+    # Liên hệ
+    "liên hệ": "📞 Liên hệ admin: @TruongKTS hoặc nhắn tin trực tiếp vào bot!",
+    "admin": "📞 Liên hệ admin: @TruongKTS hoặc nhắn tin trực tiếp vào bot!",
+    "hỗ trợ": "🆘 Để được hỗ trợ, vui lòng nhắn tin trực tiếp @MarketingBDS_bot hoặc liên hệ @TruongKTS!",
+    
+    # Nội dung ebook
+    "ebook có gì": "📚 Ebook AI Marketing BĐS bao gồm: chiến lược marketing, công cụ AI, mẫu nội dung, case study thực tế!",
+    "nội dung": "📚 Ebook AI Marketing BĐS bao gồm: chiến lược marketing, công cụ AI, mẫu nội dung, case study thực tế!",
+    
+    # Thanh toán
+    "thanh toán": "💳 Hỗ trợ thanh toán: chuyển khoản ngân hàng, MoMo. Liên hệ @TruongKTS để biết thêm!",
+    "chuyển khoản": "💳 Hỗ trợ thanh toán: chuyển khoản ngân hàng, MoMo. Liên hệ @TruongKTS để biết thêm!",
+    "momo": "💳 Hỗ trợ thanh toán: chuyển khoản ngân hàng, MoMo. Liên hệ @TruongKTS để biết thêm!",
+}
+
 # ─── Quản lý khách hàng ───────────────────────────────────────
 def load_customers():
     try:
@@ -143,6 +170,37 @@ async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
             pass
     await update.message.reply_text(f"✅ Đã gửi tới {success}/{len(df)} khách hàng.")
 
+# ─── Xử lý tin nhắn trong group ──────────────────────────────
+async def group_message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Chỉ xử lý tin nhắn trong group, không phải private chat
+    if update.effective_chat.type not in ["group", "supergroup"]:
+        return
+    
+    message = update.message
+    if not message or not message.text:
+        return
+    
+    text = message.text.lower()
+    user = message.from_user
+    
+    # Kiểm tra từng câu hỏi trong FAQ
+    for keyword, answer in FAQ.items():
+        if keyword in text:
+            await message.reply_text(
+                f"👋 {user.first_name}, {answer}",
+                parse_mode="Markdown"
+            )
+            return  # Chỉ trả lời 1 lần
+    
+    # Nếu có đề cập (@mention) bot thì trả lời hướng dẫn
+    bot_username = context.bot.username
+    if f"@{bot_username}".lower() in text:
+        await message.reply_text(
+            "👋 Xin chào! Tôi là bot hỗ trợ Ebook.\n"
+            "📥 Nhắn tin trực tiếp với tôi và gõ /start để nhận ebook!\n"
+            "❓ Hoặc liên hệ admin @TruongKTS để được hỗ trợ."
+        )
+
 # ─── Khởi chạy Bot ────────────────────────────────────────────
 def main():
     app = Application.builder().token(TOKEN).build()
@@ -150,6 +208,7 @@ def main():
     app.add_handler(CommandHandler("add", add_customer))
     app.add_handler(CommandHandler("broadcast", broadcast))
     app.add_handler(CallbackQueryHandler(button_handler))
+    app.add_handler(MessageHandler(filters.TEXT & filters.ChatType.GROUPS, group_message_handler))
     print("🤖 Bot đang chạy...")
     app.run_polling()
 
